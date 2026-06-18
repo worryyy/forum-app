@@ -60,8 +60,8 @@ func main() {
 		SessionService: sessionService,
 		TopicService:   topicService,
 		CommentService: commentService,
-		MySQL:           mysqlDB,
-		Mongo:           mongoDB,
+		MySQL:          mysqlDB,
+		Mongo:          mongoDB,
 	})
 
 	addr := ":" + cfg.AppPort

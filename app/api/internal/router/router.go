@@ -16,8 +16,8 @@ type Dependencies struct {
 	SessionService *session.Service
 	TopicService   *topic.Service
 	CommentService *comment.Service
-	MySQL           *gorm.DB
-	Mongo           *mongo.Database
+	MySQL          *gorm.DB
+	Mongo          *mongo.Database
 }
 
 func New(deps Dependencies) *gin.Engine {
