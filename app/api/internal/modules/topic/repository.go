@@ -3,6 +3,7 @@ package topic
 import (
 	"context"
 	"regexp"
+	"time"
 
 	"campus-forum/internal/pkg/pagination"
 	"go.mongodb.org/mongo-driver/bson"
@@ -78,22 +79,52 @@ func (r *Repository) Search(ctx context.Context, keyword string, p pagination.Pa
 	return r.listByFilter(ctx, filter, p, bson.D{{Key: "created_at", Value: -1}})
 }
 
-func (r *Repository) SoftDelete(ctx context.Context, id primitive.ObjectID, deletedAt interface{}) error {
-	_, err := r.collection.UpdateOne(ctx, withActiveFilter(bson.M{"_id": id}), bson.M{
+func (r *Repository) SoftDelete(ctx context.Context, id primitive.ObjectID, deletedAt time.Time) error {
+	result, err := r.collection.UpdateOne(ctx, withActiveFilter(bson.M{"_id": id}), bson.M{
 		"$set": bson.M{
 			"deleted_at": deletedAt,
 			"updated_at": deletedAt,
 		},
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	if result.MatchedCount == 0 {
+		return mongo.ErrNoDocuments
+	}
+	return nil
 }
 
-func (r *Repository) IncrementCommentCount(ctx context.Context, id primitive.ObjectID, delta int64, updatedAt interface{}) error {
-	_, err := r.collection.UpdateOne(ctx, withActiveFilter(bson.M{"_id": id}), bson.M{
+func (r *Repository) IncrementCommentCount(ctx context.Context, id primitive.ObjectID, delta int64, updatedAt time.Time) error {
+	var update interface{} = bson.M{
 		"$inc": bson.M{"comment_count": delta},
 		"$set": bson.M{"updated_at": updatedAt},
-	})
-	return err
+	}
+	if delta < 0 {
+		update = mongo.Pipeline{
+			bson.D{{Key: "$set", Value: bson.D{
+				{Key: "comment_count", Value: bson.D{
+					{Key: "$max", Value: bson.A{
+						int64(0),
+						bson.D{{Key: "$add", Value: bson.A{
+							bson.D{{Key: "$ifNull", Value: bson.A{"$comment_count", int64(0)}}},
+							delta,
+						}}},
+					}},
+				}},
+				{Key: "updated_at", Value: updatedAt},
+			}}},
+		}
+	}
+
+	result, err := r.collection.UpdateOne(ctx, withActiveFilter(bson.M{"_id": id}), update)
+	if err != nil {
+		return err
+	}
+	if result.MatchedCount == 0 {
+		return mongo.ErrNoDocuments
+	}
+	return nil
 }
 
 func (r *Repository) listByFilter(ctx context.Context, filter bson.M, p pagination.Params, sort bson.D) ([]Topic, int64, error) {

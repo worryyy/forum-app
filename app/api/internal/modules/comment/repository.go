@@ -122,13 +122,36 @@ func (r *Repository) ListByAuthorWithActiveTopics(ctx context.Context, authorID 
 }
 
 func (r *Repository) SoftDelete(ctx context.Context, id primitive.ObjectID, deletedAt time.Time) error {
-	_, err := r.collection.UpdateOne(ctx, withActiveCommentFilter(bson.M{"_id": id}), bson.M{
+	result, err := r.collection.UpdateOne(ctx, withActiveCommentFilter(bson.M{"_id": id}), bson.M{
 		"$set": bson.M{
 			"deleted_at": deletedAt,
 			"updated_at": deletedAt,
 		},
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	if result.MatchedCount == 0 {
+		return mongo.ErrNoDocuments
+	}
+	return nil
+}
+
+func (r *Repository) Restore(ctx context.Context, id primitive.ObjectID, updatedAt time.Time) error {
+	result, err := r.collection.UpdateOne(ctx, bson.M{
+		"_id":        id,
+		"deleted_at": bson.M{"$exists": true},
+	}, bson.M{
+		"$unset": bson.M{"deleted_at": ""},
+		"$set":   bson.M{"updated_at": updatedAt},
+	})
+	if err != nil {
+		return err
+	}
+	if result.MatchedCount == 0 {
+		return mongo.ErrNoDocuments
+	}
+	return nil
 }
 
 func (r *Repository) listByFilter(ctx context.Context, filter bson.M, p pagination.Params, sort bson.D) ([]Comment, int64, error) {

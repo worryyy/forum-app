@@ -72,6 +72,7 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (*ListItem, err
 		return nil, err
 	}
 	if err := s.topics.IncrementCommentCount(ctx, topicID, 1); err != nil {
+		_ = s.repo.SoftDelete(ctx, comment.ID, time.Now())
 		return nil, err
 	}
 
@@ -129,10 +130,17 @@ func (s *Service) Delete(ctx context.Context, req DeleteRequest) error {
 		return apperrors.Forbidden("only the comment author can delete this comment")
 	}
 
-	if err := s.repo.SoftDelete(ctx, commentID, time.Now()); err != nil {
+	now := time.Now()
+	if err := s.repo.SoftDelete(ctx, commentID, now); err == mongo.ErrNoDocuments {
+		return apperrors.NotFound("comment not found")
+	} else if err != nil {
 		return err
 	}
-	return s.topics.IncrementCommentCount(ctx, comment.TopicID, -1)
+	if err := s.topics.IncrementCommentCount(ctx, comment.TopicID, -1); err != nil {
+		_ = s.repo.Restore(ctx, commentID, now)
+		return err
+	}
+	return nil
 }
 
 func parseObjectID(raw string, field string) (primitive.ObjectID, error) {

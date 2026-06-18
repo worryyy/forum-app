@@ -114,7 +114,12 @@ func (s *Service) Delete(ctx context.Context, req DeleteRequest) error {
 		return apperrors.Forbidden("only the topic author can delete this topic")
 	}
 
-	return s.repo.SoftDelete(ctx, id, time.Now())
+	if err := s.repo.SoftDelete(ctx, id, time.Now()); err == mongo.ErrNoDocuments {
+		return apperrors.NotFound("topic not found")
+	} else if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Service) Search(ctx context.Context, keyword string, p pagination.Params) (interface{}, int64, error) {
@@ -142,7 +147,12 @@ func (s *Service) FindActiveTopic(ctx context.Context, id primitive.ObjectID) (*
 }
 
 func (s *Service) IncrementCommentCount(ctx context.Context, id primitive.ObjectID, delta int64) error {
-	return s.repo.IncrementCommentCount(ctx, id, delta, time.Now())
+	if err := s.repo.IncrementCommentCount(ctx, id, delta, time.Now()); err == mongo.ErrNoDocuments {
+		return apperrors.NotFound("topic not found")
+	} else if err != nil {
+		return err
+	}
+	return nil
 }
 
 func parseObjectID(raw string, field string) (primitive.ObjectID, error) {
