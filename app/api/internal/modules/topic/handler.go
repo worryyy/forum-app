@@ -28,7 +28,7 @@ func (h *Handler) Create(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, topic)
+	response.Success.RespData(c, topic)
 }
 
 func (h *Handler) List(c *gin.Context) {
@@ -39,7 +39,7 @@ func (h *Handler) List(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, pagination.NewResult(list, params, total))
+	response.Success.RespData(c, pagination.NewResult(list, params, total))
 }
 
 func (h *Handler) Detail(c *gin.Context) {
@@ -49,7 +49,7 @@ func (h *Handler) Detail(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, topic)
+	response.Success.RespData(c, topic)
 }
 
 func (h *Handler) Delete(c *gin.Context) {
@@ -64,7 +64,7 @@ func (h *Handler) Delete(c *gin.Context) {
 		return
 	}
 
-	response.OK(c)
+	response.Success.RespMessage(c, "deleted")
 }
 
 func (h *Handler) Search(c *gin.Context) {
@@ -75,5 +75,5 @@ func (h *Handler) Search(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, pagination.NewResult(list, params, total))
+	response.Success.RespData(c, pagination.NewResult(list, params, total))
 }

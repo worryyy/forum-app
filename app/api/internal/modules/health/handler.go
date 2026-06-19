@@ -24,7 +24,7 @@ func NewHandler(mysql *gorm.DB, mongo *mongo.Database) *Handler {
 }
 
 func (h *Handler) Healthz(c *gin.Context) {
-	response.Success(c, gin.H{"status": "ok"})
+	response.Success.RespData(c, gin.H{"status": "ok"})
 }
 
 func (h *Handler) Readyz(c *gin.Context) {
@@ -52,13 +52,13 @@ func (h *Handler) Readyz(c *gin.Context) {
 	}
 
 	if ready {
-		response.Success(c, data)
+		response.Success.RespData(c, data)
 		return
 	}
 
 	c.JSON(http.StatusServiceUnavailable, response.Body{
-		Code: http.StatusServiceUnavailable,
-		Msg:  "service unavailable",
-		Data: data,
+		Code:    http.StatusServiceUnavailable,
+		Message: "service unavailable",
+		Data:    data,
 	})
 }

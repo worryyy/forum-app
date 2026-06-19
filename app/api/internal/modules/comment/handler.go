@@ -28,7 +28,7 @@ func (h *Handler) Create(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, comment)
+	response.Success.RespData(c, comment)
 }
 
 func (h *Handler) List(c *gin.Context) {
@@ -39,7 +39,7 @@ func (h *Handler) List(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, pagination.NewResult(list, params, total))
+	response.Success.RespData(c, pagination.NewResult(list, params, total))
 }
 
 func (h *Handler) Delete(c *gin.Context) {
@@ -54,5 +54,5 @@ func (h *Handler) Delete(c *gin.Context) {
 		return
 	}
 
-	response.OK(c)
+	response.Success.RespMessage(c, "deleted")
 }

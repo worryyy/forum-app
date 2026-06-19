@@ -45,7 +45,7 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, user)
+	response.Success.RespData(c, user)
 }
 
 func (h *Handler) Detail(c *gin.Context) {
@@ -61,7 +61,7 @@ func (h *Handler) Detail(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, user)
+	response.Success.RespData(c, user)
 }
 
 func (h *Handler) TopicList(c *gin.Context) {
@@ -83,7 +83,7 @@ func (h *Handler) TopicList(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, pagination.NewResult(list, params, total))
+	response.Success.RespData(c, pagination.NewResult(list, params, total))
 }
 
 func (h *Handler) CommentList(c *gin.Context) {
@@ -105,7 +105,7 @@ func (h *Handler) CommentList(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, pagination.NewResult(list, params, total))
+	response.Success.RespData(c, pagination.NewResult(list, params, total))
 }
 
 func parseUserIDQuery(c *gin.Context) (uint64, error) {

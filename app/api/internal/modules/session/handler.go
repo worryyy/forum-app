@@ -27,5 +27,5 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, user)
+	response.Success.RespData(c, user)
 }
